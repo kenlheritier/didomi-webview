@@ -17,54 +17,71 @@
         var t=document.createElement("script");t.id="spcloader";t.type="text/javascript";t.async=true;t.src="https://sdk.privacy-center.org/"+e+"/loader.js?target_type=notice&target="+tgt;t.charset="utf-8";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n)})("7dd8ec4e-746c-455e-a610-99121b4148df","ABMjPKBE")})();</script>
     
     <script type="text/javascript">
-      window.didomiEventListeners = window.didomiEventListeners || [];
-      window.didomiEventListeners.push({
-        event: 'consent.changed',
-        listener: function (context) {
-          // Reload the page when the consent status has changed to make sure we display the correct information
-          location.reload();
+      function updateTable() {
+        
+        // Get table element
+        var table = document.getElementsByTagName("table")[0];
+        
+        // Clear existing rows except header row
+        while (table.childElementCount > 1) {
+          table.removeChild(table.lastChild);
         }
-      });
+        
+        // Get vendors
+        var vendors = Didomi.getRequiredVendors();
+        
+        // Loop through all vendors
+        vendors.forEach(vendor => {
+          
+          // Get the name and the consent status of the vendor
+          var name = vendor.name;
+          var id = vendor.id;
+          var status;
+          switch (Didomi.getUserConsentStatusForVendor(id)) {
+            case true:
+              status = "Enabled";
+              break;
+            case false:
+              status = "Disabled";
+              break;
+            case undefined:
+              status = "Undefined";
+              break;
+          };
+          
+          // Create a new row containing the name and consent status of the vendor
+          var row = document.createElement("tr");
+          var nameData = document.createElement("td");
+          var statusData = document.createElement("td");
+          var nameNode = document.createTextNode(name);
+          var statusNode = document.createTextNode(status);
+          
+          nameData.appendChild(nameNode);
+          statusData.appendChild(statusNode);
+          
+          row.appendChild(nameData);
+          row.appendChild(statusData);
+          
+          // Add the new row to the table
+          table.appendChild(row);
+        });
+      }
     </script>
     
     <script type="text/javascript">
       window.didomiOnReady = window.didomiOnReady || [];
       window.didomiOnReady.push(function (Didomi) {
-          // Call other functions on the SDK
-          
-          var vendors = Didomi.getRequiredVendors();
-          vendors.forEach(vendor => {
-            var name = vendor.name;
-            var id = vendor.id;
-            var status;
-            switch (Didomi.getUserConsentStatusForVendor(id)) {
-              case true:
-                status = "Enabled";
-                break;
-              case false:
-                status = "Disabled";
-                break;
-              case undefined:
-                status = "Undefined";
-                break;
-            };
-            
-            var table = document.getElementsByTagName("table")[0];
-            var row = document.createElement("tr");
-            
-            var nameData = document.createElement("td");
-            var statusData = document.createElement("td");
-            var nameNode = document.createTextNode(name);
-            var statusNode = document.createTextNode(status);
-            
-            nameData.appendChild(nameNode);
-            statusData.appendChild(statusNode);
-            
-            row.appendChild(nameData);
-            row.appendChild(statusData);
-            
-            table.appendChild(row);
-          });
+          // Update the table when the SDK is ready
+          updateTable();
+      });
+      
+      window.didomiEventListeners = window.didomiEventListeners || [];
+      window.didomiEventListeners.push({
+        event: 'consent.changed',
+        listener: function (context) {
+          // Update the table when the consent status has changed
+          updateTable();
+        }
       });
     </script>
   </head>
